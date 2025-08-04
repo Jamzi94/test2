@@ -1,0 +1,283 @@
+{
+  "version": "1.0",
+  "last_updated": "2024-01-01",
+  "packs": {
+    "llm_core": {
+      "id": 1,
+      "name": "🧠 LLM Core",
+      "description": "Ollama + Open WebUI pour génération de texte",
+      "requirements": {
+        "vram_gb": 2,
+        "disk_gb": 10,
+        "features": ["docker", "wsl"]
+      },
+      "services": ["ollama", "open-webui"],
+      "assets": {
+        "ollama_models": ["llama3.1:8b", "qwen2.5:7b"],
+        "comfyui_checkpoints": [],
+        "comfyui_plugins": [],
+        "n8n_workflows": []
+      },
+      "volumes": {
+        "ollama_data": "./data/ollama"
+      },
+      "nsfw": false
+    },
+    "automation_core": {
+      "id": 2,
+      "name": "🔧 Automation",
+      "description": "n8n + PostgreSQL + Redis pour automatisation",
+      "requirements": {
+        "vram_gb": 4,
+        "disk_gb": 15,
+        "features": ["docker", "wsl"]
+      },
+      "services": ["n8n", "postgres", "redis"],
+      "assets": {
+        "ollama_models": [],
+        "comfyui_checkpoints": [],
+        "comfyui_plugins": [],
+        "n8n_workflows": ["automation_basic", "data_processing"]
+      },
+      "volumes": {
+        "n8n_data": "./data/n8n",
+        "postgres_data": "./data/postgres"
+      },
+      "nsfw": false
+    },
+    "creative_base": {
+      "id": 3,
+      "name": "🎨 Creative Base",
+      "description": "ComfyUI + modèles de base pour création d'images",
+      "requirements": {
+        "vram_gb": 6,
+        "disk_gb": 25,
+        "features": ["docker", "wsl", "gpu"]
+      },
+      "services": ["comfyui", "ollama"],
+      "assets": {
+        "ollama_models": ["llama3.1:8b"],
+        "comfyui_checkpoints": ["sd15_base", "sdxl_base"],
+        "comfyui_vae": ["vae_ft_mse", "sdxl_vae"],
+        "comfyui_upscale": ["esrgan_4x", "real_esrgan"],
+        "comfyui_gfpgan": ["gfpgan_1_4"],
+        "comfyui_plugins": ["comfyui-manager", "image-tools"],
+        "n8n_workflows": []
+      },
+      "volumes": {
+        "comfyui_models": "./data/comfyui/models",
+        "ollama_data": "./data/ollama"
+      },
+      "nsfw": false
+    },
+    "video_advanced_sfw": {
+      "id": 4,
+      "name": "🎬 Video Advanced (SFW)",
+      "description": "Studio vidéo avancé sans contenu adulte",
+      "requirements": {
+        "vram_gb": 8,
+        "disk_gb": 40,
+        "features": ["docker", "wsl", "gpu"]
+      },
+      "services": ["comfyui", "ollama", "n8n"],
+      "assets": {
+        "ollama_models": ["llama3.1:8b", "qwen2.5:7b"],
+        "comfyui_checkpoints": ["sd15_base", "sdxl_base", "svd_xt"],
+        "comfyui_vae": ["vae_ft_mse", "sdxl_vae"],
+        "comfyui_controlnet": ["canny", "depth", "openpose"],
+        "comfyui_upscale": ["esrgan_4x", "real_esrgan"],
+        "comfyui_gfpgan": ["gfpgan_1_4"],
+        "comfyui_wav2lip": ["wav2lip_gan"],
+        "comfyui_plugins": ["comfyui-manager", "video-tools", "controlnet-aux"],
+        "comfyui_workflows": ["video_basic", "img2vid"],
+        "n8n_workflows": ["video_automation"]
+      },
+      "volumes": {
+        "comfyui_models": "./data/comfyui/models",
+        "ollama_data": "./data/ollama",
+        "n8n_data": "./data/n8n"
+      },
+      "nsfw": false
+    },
+    "image_photoreal_nsfw": {
+      "id": 5,
+      "name": "🔥 Image Photoreal (NSFW)",
+      "description": "Images photoréalistes (contenu adulte)",
+      "requirements": {
+        "vram_gb": 10,
+        "disk_gb": 50,
+        "features": ["docker", "wsl", "gpu"]
+      },
+      "services": ["comfyui", "ollama", "open-webui"],
+      "assets": {
+        "ollama_models": ["llama3.1:8b", "uncensored-7b"],
+        "comfyui_checkpoints": ["realistic_vision", "juggernaut_xl", "photon_v1"],
+        "comfyui_vae": ["vae_ft_mse", "blessed2_vae"],
+        "comfyui_upscale": ["esrgan_4x", "real_esrgan", "ultrasharp"],
+        "comfyui_gfpgan": ["gfpgan_1_4", "codeformer"],
+        "comfyui_loras": ["detail_tweaker", "skin_detail", "lighting_lora"],
+        "comfyui_plugins": ["comfyui-manager", "image-tools", "face-tools"],
+        "comfyui_workflows": ["photoreal_portrait", "beauty_enhance"],
+        "n8n_workflows": []
+      },
+      "volumes": {
+        "comfyui_models": "./data/comfyui/models",
+        "ollama_data": "./data/ollama"
+      },
+      "nsfw": true
+    },
+    "video_full_nsfw": {
+      "id": 6,
+      "name": "🎭 Video Complete (NSFW)",
+      "description": "Studio vidéo complet (contenu adulte)",
+      "requirements": {
+        "vram_gb": 12,
+        "disk_gb": 60,
+        "features": ["docker", "wsl", "gpu"]
+      },
+      "services": ["comfyui", "ollama", "n8n", "open-webui"],
+      "assets": {
+        "ollama_models": ["llama3.1:8b", "uncensored-7b", "qwen2.5:7b"],
+        "comfyui_checkpoints": ["realistic_vision", "juggernaut_xl", "svd_xt", "hotshot_xl"],
+        "comfyui_vae": ["vae_ft_mse", "blessed2_vae", "sdxl_vae"],
+        "comfyui_controlnet": ["canny", "depth", "openpose", "tile"],
+        "comfyui_upscale": ["esrgan_4x", "real_esrgan", "ultrasharp"],
+        "comfyui_gfpgan": ["gfpgan_1_4", "codeformer"],
+        "comfyui_wav2lip": ["wav2lip_gan", "wav2lip_hd"],
+        "comfyui_loras": ["detail_tweaker", "skin_detail", "video_lora"],
+        "comfyui_plugins": ["comfyui-manager", "video-tools", "face-tools", "controlnet-aux"],
+        "comfyui_workflows": ["video_complete", "face_swap_video", "img2vid_hd"],
+        "n8n_workflows": ["video_automation", "content_pipeline"]
+      },
+      "volumes": {
+        "comfyui_models": "./data/comfyui/models",
+        "ollama_data": "./data/ollama",
+        "n8n_data": "./data/n8n"
+      },
+      "nsfw": true
+    },
+    "full_monty": {
+      "id": 7,
+      "name": "🌟 Full Deployment",
+      "description": "Tous les services et modèles disponibles",
+      "requirements": {
+        "vram_gb": 16,
+        "disk_gb": 100,
+        "features": ["docker", "wsl", "gpu"]
+      },
+      "services": ["comfyui", "ollama", "n8n", "open-webui", "postgres", "redis"],
+      "assets": {
+        "ollama_models": ["llama3.1:8b", "qwen2.5:7b", "uncensored-7b", "codellama:13b"],
+        "comfyui_checkpoints": ["sd15_base", "sdxl_base", "realistic_vision", "juggernaut_xl", "svd_xt"],
+        "comfyui_vae": ["vae_ft_mse", "sdxl_vae", "blessed2_vae"],
+        "comfyui_controlnet": ["canny", "depth", "openpose", "tile", "lineart"],
+        "comfyui_upscale": ["esrgan_4x", "real_esrgan", "ultrasharp"],
+        "comfyui_gfpgan": ["gfpgan_1_4", "codeformer"],
+        "comfyui_wav2lip": ["wav2lip_gan", "wav2lip_hd"],
+        "comfyui_loras": ["detail_tweaker", "skin_detail", "lighting_lora", "video_lora"],
+        "comfyui_clip": ["clip_l", "clip_g", "t5_base"],
+        "comfyui_unet": ["flux_schnell", "flux_dev"],
+        "comfyui_plugins": ["comfyui-manager", "video-tools", "face-tools", "controlnet-aux", "flux-tools"],
+        "comfyui_workflows": ["all_workflows"],
+        "n8n_workflows": ["automation_complete", "ai_pipeline"]
+      },
+      "volumes": {
+        "comfyui_models": "./data/comfyui/models",
+        "ollama_data": "./data/ollama",
+        "n8n_data": "./data/n8n",
+        "postgres_data": "./data/postgres"
+      },
+      "nsfw": true
+    },
+    "wan22_lite": {
+      "id": 8,
+      "name": "📹 Wan 2.2 Lite",
+      "description": "Studio vidéo Wan 2.2 optimisé (4-8GB VRAM)",
+      "requirements": {
+        "vram_gb": 6,
+        "disk_gb": 30,
+        "features": ["docker", "wsl", "gpu"]
+      },
+      "services": ["comfyui", "ollama", "open-webui", "n8n"],
+      "assets": {
+        "ollama_models": ["llama3.1:8b", "qwen2.5:7b"],
+        "comfyui_checkpoints": ["wan2.2-ti2v-5b-fp16"],
+        "comfyui_vae": ["wan-2.2-vae"],
+        "comfyui_clip": ["umt5-xxl-fp8-e4m3fn-wan2.2"],
+        "comfyui_unet": ["wan2.2-ti2v-5b-q4"],
+        "comfyui_upscale": ["upscale-ultrasharp"],
+        "comfyui_gfpgan": ["gfpgan-v1.4"],
+        "comfyui_plugins": ["comfyui-manager", "video-tools-lite", "flux-tools"],
+        "comfyui_workflows": ["video_wan2_2_5B_ti2v"],
+        "n8n_workflows": []
+      },
+      "volumes": {
+        "comfyui_models": "./data/comfyui/models",
+        "ollama_data": "./data/ollama",
+        "n8n_data": "./data/n8n"
+      },
+      "nsfw": false
+    },
+    "wan22_quantized": {
+      "id": 9,
+      "name": "⚡ Wan 2.2 Quantized",
+      "description": "Studio vidéo Wan 2.2 quantifié (8-12GB VRAM)",
+      "requirements": {
+        "vram_gb": 8,
+        "disk_gb": 45,
+        "features": ["docker", "wsl", "gpu"]
+      },
+      "services": ["comfyui", "ollama", "open-webui", "n8n"],
+      "assets": {
+        "ollama_models": ["llama3.1:8b", "qwen2.5:7b", "codellama:7b"],
+        "comfyui_checkpoints": ["sd15_base", "sdxl_base", "svd_xt_q8"],
+        "comfyui_vae": ["vae_ft_mse", "sdxl_vae"],
+        "comfyui_clip": ["clip_l", "clip_g"],
+        "comfyui_unet": ["flux_schnell_q8", "flux_dev_q8"],
+        "comfyui_upscale": ["esrgan_4x", "real_esrgan"],
+        "comfyui_gfpgan": ["gfpgan_1_4"],
+        "comfyui_controlnet": ["canny_q8", "depth_q8"],
+        "comfyui_plugins": ["comfyui-manager", "video-tools", "flux-tools", "controlnet-aux"],
+        "comfyui_workflows": ["wan22_standard", "img2vid_hd", "flux_workflow"],
+        "n8n_workflows": ["wan22_automation", "video_pipeline"]
+      },
+      "volumes": {
+        "comfyui_models": "./data/comfyui/models",
+        "ollama_data": "./data/ollama",
+        "n8n_data": "./data/n8n"
+      },
+      "nsfw": false
+    },
+    "wan22_pro": {
+      "id": 10,
+      "name": "💎 Wan 2.2 Pro",
+      "description": "Studio vidéo Wan 2.2 haute qualité (12GB+ VRAM)",
+      "requirements": {
+        "vram_gb": 12,
+        "disk_gb": 70,
+        "features": ["docker", "wsl", "gpu"]
+      },
+      "services": ["comfyui", "ollama", "open-webui", "n8n"],
+      "assets": {
+        "ollama_models": ["llama3.1:8b", "qwen2.5:7b", "codellama:13b", "mistral:7b"],
+        "comfyui_checkpoints": ["sd15_base", "sdxl_base", "svd_xt", "hotshot_xl", "flux_dev"],
+        "comfyui_vae": ["vae_ft_mse", "sdxl_vae", "flux_vae"],
+        "comfyui_clip": ["clip_l", "clip_g", "t5_base"],
+        "comfyui_unet": ["flux_schnell", "flux_dev", "sd3_medium"],
+        "comfyui_upscale": ["esrgan_4x", "real_esrgan", "ultrasharp"],
+        "comfyui_gfpgan": ["gfpgan_1_4", "codeformer"],
+        "comfyui_controlnet": ["canny", "depth", "openpose", "tile", "lineart"],
+        "comfyui_wav2lip": ["wav2lip_gan", "wav2lip_hd"],
+        "comfyui_plugins": ["comfyui-manager", "video-tools", "flux-tools", "controlnet-aux", "face-tools"],
+        "comfyui_workflows": ["wan22_pro", "flux_complete", "video_production", "img2vid_pro"],
+        "n8n_workflows": ["wan22_automation", "video_pipeline", "ai_production"]
+      },
+      "volumes": {
+        "comfyui_models": "./data/comfyui/models",
+        "ollama_data": "./data/ollama",
+        "n8n_data": "./data/n8n"
+      },
+      "nsfw": false
+    }
+  }
+}
