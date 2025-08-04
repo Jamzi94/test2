@@ -1,0 +1,9 @@
+# Fichiers de secrets et de configuration locale
+.env
+
+# Données générées et téléchargées
+data/
+
+# Fichiers de build temporaires
+builders/
+docker-compose.yml

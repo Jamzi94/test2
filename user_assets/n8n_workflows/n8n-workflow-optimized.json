@@ -1,0 +1,1260 @@
+{
+  "name": "AI Image Generation Workflow - Advanced",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-image",
+        "responseMode": "responseNode",
+        "options": {
+          "cors": {
+            "allowedOrigins": "*"
+          }
+        }
+      },
+      "id": "cd6d2c79-5c1c-4f03-b500-0e469a1e7dae",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [100, 200],
+      "webhookId": "generate-image-webhook"
+    },
+    {
+      "parameters": {},
+      "id": "711ae692-25bb-44db-8c08-874d65ba8eba",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [100, 0]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"requestId\": \"{{ $now.toISOString() }}_{{ Math.random().toString(36).substring(7) }}\",\n  \"textPrompt\": \"{{ $json.body?.textPrompt || $json.textPrompt || 'Une forêt enchantée avec des créatures magiques, style fantasy art, haute qualité' }}\",\n  \"model\": \"{{ $json.body?.model || $json.model || 'ajindal/llama3.1-storm:8b' }}\",\n  \"temperature\": {{ $json.body?.temperature || $json.temperature || 0.7 }},\n  \"max_tokens\": {{ $json.body?.max_tokens || $json.max_tokens || 200 }},\n  \"width\": {{ $json.body?.width || $json.width || 1024 }},\n  \"height\": {{ $json.body?.height || $json.height || 1024 }},\n  \"steps\": {{ $json.body?.steps || $json.steps || 30 }},\n  \"cfg\": {{ $json.body?.cfg || $json.cfg || 7.5 }},\n  \"sampler\": \"{{ $json.body?.sampler || $json.sampler || 'dpmpp_2m' }}\",\n  \"scheduler\": \"{{ $json.body?.scheduler || $json.scheduler || 'karras' }}\",\n  \"model_checkpoint\": \"{{ $json.body?.model_checkpoint || $json.model_checkpoint || 'sd_xl_base_1.0.safetensors' }}\",\n  \"negative_prompt\": \"{{ $json.body?.negative_prompt || $json.negative_prompt || 'blurry, bad quality, worst quality, low quality, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, out of frame, ugly, deformed, noisy, blurred, distorted, out of focus, bad anatomy, extra limbs, poorly drawn face, poorly drawn hands, missing fingers' }}\",\n  \"batch_size\": {{ $json.body?.batch_size || $json.batch_size || 1 }},\n  \"seed\": {{ $json.body?.seed || $json.seed || Math.floor(Math.random() * 1000000) }},\n  \"timestamp\": \"{{ $now.toISOString() }}\",\n  \"enhancePrompt\": {{ $json.body?.enhancePrompt !== false }},\n  \"webhookData\": {{ JSON.stringify($json.body || {}) }}\n}",
+        "options": {}
+      },
+      "id": "6b6d6fdd-76af-4563-a33f-57b0856296cc",
+      "name": "Prepare Request Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [300, 100]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"error\": true,\n  \"errorType\": \"{{ $json.error?.name || 'UnknownError' }}\",\n  \"errorMessage\": \"{{ $json.error?.message || $json.message || 'Une erreur inattendue s\\'est produite' }}\",\n  \"errorCode\": \"{{ $json.error?.code || $json.code || 'UNKNOWN' }}\",\n  \"requestId\": \"{{ $('Prepare Request Data').item.json.requestId }}\",\n  \"timestamp\": \"{{ $now.toISOString() }}\",\n  \"stage\": \"{{ $json.stage || 'unknown' }}\",\n  \"details\": {{ JSON.stringify($json) }}\n}",
+        "options": {}
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [2400, 600]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 500,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "error-response",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2600, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.enhancePrompt }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "should-enhance",
+      "name": "Should Enhance Prompt?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [500, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"{{ $json.model }}\",\n  \"prompt\": \"En tant qu'expert en génération d'images IA, transformez cette description en un prompt détaillé pour Stable Diffusion SDXL. Ajoutez des détails artistiques, des styles, la qualité et l'éclairage. Soyez créatif et précis.\\n\\nDescription: {{ $json.textPrompt }}\\n\\nIMPORTANT: Répondez UNIQUEMENT avec le prompt optimisé, sans explications ni préambule.\",\n  \"stream\": false,\n  \"temperature\": {{ $json.temperature }},\n  \"num_predict\": {{ $json.max_tokens }},\n  \"system\": \"Tu es un expert en création de prompts pour Stable Diffusion SDXL. Tu transformes des descriptions simples en prompts détaillés qui produisent des images de haute qualité. Tu ajoutes toujours des détails sur le style artistique, l'éclairage, la composition, la qualité (8k, highly detailed, masterpiece, best quality, ultra-detailed, photorealistic si approprié) et les mots-clés pertinents. Tu ne donnes QUE le prompt, sans aucune explication.\"\n}",
+        "options": {
+          "timeout": 30000,
+          "retry": {
+            "maxTries": 3,
+            "waitBetweenTries": 2000
+          }
+        }
+      },
+      "id": "a64dd15d-1638-4472-89cc-8f011facc459",
+      "name": "Ollama - Enhance Prompt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [700, 0],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"stage\": \"prompt_enhancement\",\n  \"error\": {\n    \"message\": \"Échec de l'amélioration du prompt avec Ollama\",\n    \"details\": {{ JSON.stringify($json) }}\n  },\n  \"fallback\": true,\n  \"original_prompt\": \"{{ $('Prepare Request Data').item.json.textPrompt }}\"\n}",
+        "options": {}
+      },
+      "id": "enhancement-error",
+      "name": "Enhancement Error Handler",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"finalPrompt\": \"{{ $json.response ? $json.response.replace(/\\n/g, ' ').replace(/\"/g, '\\\\\"').trim() : $('Prepare Request Data').item.json.textPrompt }}\",\n  \"originalPrompt\": \"{{ $('Prepare Request Data').item.json.textPrompt }}\",\n  \"enhanced\": {{ $json.response ? true : false }},\n  \"requestData\": {{ JSON.stringify($('Prepare Request Data').item.json) }}\n}",
+        "options": {}
+      },
+      "id": "merge-prompts",
+      "name": "merge-prompts",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [900, 100]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://comfyui:8188/system_stats",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "check-comfyui-health",
+      "name": "Check ComfyUI Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1100, 100],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.error ? false : true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "comfyui-available",
+      "name": "ComfyUI Available?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1300, 100]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"error\": true,\n  \"errorType\": \"ServiceUnavailable\",\n  \"errorMessage\": \"ComfyUI service is not available\",\n  \"errorCode\": \"COMFYUI_UNAVAILABLE\",\n  \"requestId\": \"{{ $('Prepare Request Data').item.json.requestId }}\",\n  \"timestamp\": \"{{ $now.toISOString() }}\",\n  \"stage\": \"health_check\"\n}",
+        "options": {}
+      },
+      "id": "comfyui-error",
+      "name": "ComfyUI Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [1300, 300]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"prompt\": {\n    \"3\": {\n      \"inputs\": {\n        \"seed\": {{ $('merge-prompts').item.json.requestData.seed }},\n        \"steps\": {{ $('merge-prompts').item.json.requestData.steps }},\n        \"cfg\": {{ $('merge-prompts').item.json.requestData.cfg }},\n        \"sampler_name\": \"{{ $('merge-prompts').item.json.requestData.sampler }}\",\n        \"scheduler\": \"{{ $('merge-prompts').item.json.requestData.scheduler }}\",\n        \"denoise\": 1,\n        \"model\": [\"4\", 0],\n        \"positive\": [\"6\", 0],\n        \"negative\": [\"7\", 0],\n        \"latent_image\": [\"5\", 0]\n      },\n      \"class_type\": \"KSampler\",\n      \"_meta\": {\n        \"title\": \"KSampler\"\n      }\n    },\n    \"4\": {\n      \"inputs\": {\n        \"ckpt_name\": \"{{ $('merge-prompts').item.json.requestData.model_checkpoint }}\"\n      },\n      \"class_type\": \"CheckpointLoaderSimple\",\n      \"_meta\": {\n        \"title\": \"Load Checkpoint\"\n      }\n    },\n    \"5\": {\n      \"inputs\": {\n        \"width\": {{ $('merge-prompts').item.json.requestData.width }},\n        \"height\": {{ $('merge-prompts').item.json.requestData.height }},\n        \"batch_size\": {{ $('merge-prompts').item.json.requestData.batch_size }}\n      },\n      \"class_type\": \"EmptyLatentImage\",\n      \"_meta\": {\n        \"title\": \"Empty Latent Image\"\n      }\n    },\n    \"6\": {\n      \"inputs\": {\n        \"text\": \"{{ $json.finalPrompt }}\",\n        \"clip\": [\"4\", 1]\n      },\n      \"class_type\": \"CLIPTextEncode\",\n      \"_meta\": {\n        \"title\": \"CLIP Text Encode (Positive)\"\n      }\n    },\n    \"7\": {\n      \"inputs\": {\n        \"text\": \"{{ $('merge-prompts').item.json.requestData.negative_prompt }}\",\n        \"clip\": [\"4\", 1]\n      },\n      \"class_type\": \"CLIPTextEncode\",\n      \"_meta\": {\n        \"title\": \"CLIP Text Encode (Negative)\"\n      }\n    },\n    \"8\": {\n      \"inputs\": {\n        \"samples\": [\"3\", 0],\n        \"vae\": [\"4\", 2]\n      },\n      \"class_type\": \"VAEDecode\",\n      \"_meta\": {\n        \"title\": \"VAE Decode\"\n      }\n    },\n    \"9\": {\n      \"inputs\": {\n        \"filename_prefix\": \"n8n_{{ $('merge-prompts').item.json.requestId }}\",\n        \"images\": [\"8\", 0]\n      },\n      \"class_type\": \"SaveImage\",\n      \"_meta\": {\n        \"title\": \"Save Image\"\n      }\n    }\n  },\n  \"client_id\": \"n8n_{{ $('merge-prompts').item.json.requestId }}\"\n}",
+        "options": {}
+      },
+      "id": "940bb4f1-99ae-4f5a-ae29-584644beb601",
+      "name": "Build ComfyUI Workflow",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [1500, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://comfyui:8188/prompt",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "timeout": 15000,
+          "retry": {
+            "maxTries": 2,
+            "waitBetweenTries": 3000
+          }
+        }
+      },
+      "id": "bbb8bcf3-ac93-45d7-8e0b-2606b29e67c6",
+      "name": "POST to ComfyUI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1700, 100],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.prompt_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "prompt-submitted",
+      "name": "Prompt Submitted?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1900, 100]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"error\": true,\n  \"errorType\": \"ComfyUISubmissionError\",\n  \"errorMessage\": \"Failed to submit workflow to ComfyUI\",\n  \"errorCode\": \"WORKFLOW_SUBMISSION_FAILED\",\n  \"requestId\": \"{{ $('Prepare Request Data').item.json.requestId }}\",\n  \"timestamp\": \"{{ $now.toISOString() }}\",\n  \"stage\": \"workflow_submission\",\n  \"details\": {{ JSON.stringify($json) }}\n}",
+        "options": {}
+      },
+      "id": "submission-error",
+      "name": "Submission Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [1900, 300]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"prompt_id\": \"{{ $json.prompt_id }}\",\n  \"number\": {{ $json.number || 0 }},\n  \"node_errors\": {{ JSON.stringify($json.node_errors || {}) }},\n  \"requestData\": {{ JSON.stringify($('merge-prompts').item.json.requestData) }},\n  \"finalPrompt\": \"{{ $('merge-prompts').item.json.finalPrompt ? $('merge-prompts').item.json.finalPrompt.replace(/\\n/g, ' ').replace(/\"/g, '\\\\\"').trim() : '' }}\",\n  \"enhanced\": {{ $('merge-prompts').item.json.enhanced }},\n  \"submission_time\": \"{{ $now.toISOString() }}\",\n  \"retry_count\": 0,\n  \"max_retries\": 30\n}",
+        "options": {}
+      },
+      "id": "64fe7245-0bd6-41fe-bf9c-8d1bb7490e8a",
+      "name": "Store Generation Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [2100, 100]
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "seconds"
+      },
+      "id": "d09755da-85a4-4181-8723-bac10ea0ae09",
+      "name": "Initial Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [2300, 100]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://comfyui:8188/history/{{ $json.prompt_id }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "b74f574b-58d6-468c-93f9-6c488c016d49",
+      "name": "Check Generation Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2500, 100],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "4e3a9726-69e6-497d-8c7f-0b20ec88fa84",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "5d4f8e2f-1234-4567-89ab-cdef01234567",
+              "leftValue": "={{ Object.keys($json).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "status-check",
+      "name": "Status Retrieved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2700, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json[Object.keys($json)[0]]?.status?.status_str }}",
+              "rightValue": "success",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "leftValue": "={{ $json[Object.keys($json)[0]]?.outputs }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "efe6912c-b509-4e9e-8d0a-9035f14dd66b",
+      "name": "Generation Complete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2900, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Store Generation Data').item.json.retry_count }}",
+              "rightValue": "={{ $('Store Generation Data').item.json.max_retries }}",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "retry-check",
+      "name": "Can Retry?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2900, 300]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"prompt_id\": \"{{ $('Store Generation Data').item.json.prompt_id }}\",\n  \"number\": {{ $('Store Generation Data').item.json.number }},\n  \"node_errors\": {{ JSON.stringify($('Store Generation Data').item.json.node_errors) }},\n  \"requestData\": {{ JSON.stringify($('Store Generation Data').item.json.requestData) }},\n  \"finalPrompt\": \"{{ $('Store Generation Data').item.json.finalPrompt ? $('Store Generation Data').item.json.finalPrompt.replace(/\\n/g, ' ').replace(/\"/g, '\\\\\"').trim() : '' }}\",\n  \"enhanced\": {{ $('Store Generation Data').item.json.enhanced }},\n  \"submission_time\": \"{{ $('Store Generation Data').item.json.submission_time }}\",\n  \"retry_count\": {{ $('Store Generation Data').item.json.retry_count + 1 }},\n  \"max_retries\": {{ $('Store Generation Data').item.json.max_retries }}\n}",
+        "options": {}
+      },
+      "id": "increment-retry",
+      "name": "Increment Retry",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [3100, 300]
+    },
+    {
+      "parameters": {
+        "amount": "={{ Math.min(5 + ($json.retry_count * 2), 30) }}",
+        "unit": "seconds"
+      },
+      "id": "e138aa3d-74c4-4d0c-aaf2-c7eb90eb2f89",
+      "name": "Progressive Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [3300, 300]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"error\": true,\n  \"errorType\": \"GenerationTimeout\",\n  \"errorMessage\": \"Image generation timed out after {{ $('Store Generation Data').item.json.max_retries }} attempts\",\n  \"errorCode\": \"GENERATION_TIMEOUT\",\n  \"requestId\": \"{{ $('Store Generation Data').item.json.requestData.requestId }}\",\n  \"timestamp\": \"{{ $now.toISOString() }}\",\n  \"stage\": \"generation_monitoring\",\n  \"prompt_id\": \"{{ $('Store Generation Data').item.json.prompt_id }}\",\n  \"elapsed_time\": \"{{ Math.round((new Date() - new Date($('Store Generation Data').item.json.submission_time)) / 1000) }}s\"\n}",
+        "options": {}
+      },
+      "id": "timeout-error",
+      "name": "Timeout Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [2900, 500]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"prompt_id\": \"{{ $('Store Generation Data').item.json.prompt_id }}\",\n  \"outputs\": {{ JSON.stringify($json[$('Store Generation Data').item.json.prompt_id].outputs['9'].images) }},\n  \"status\": \"success\",\n  \"execution_time\": {{ $json[$('Store Generation Data').item.json.prompt_id].execution_time || 0 }},\n  \"generation_data\": {{ JSON.stringify($json[$('Store Generation Data').item.json.prompt_id]) }}\n}",
+        "options": {}
+      },
+      "id": "3b5cd6ab-247f-4e12-b17a-4c9b561bfdb3",
+      "name": "Extract Output Info",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [3100, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.outputs && $json.outputs.length > 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "has-outputs",
+      "name": "Has Outputs?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3300, 100]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://comfyui:8188/view?filename={{ $json.outputs[0].filename }}&subfolder={{ $json.outputs[0].subfolder || '' }}&type={{ $json.outputs[0].type || 'output' }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "4f91c5c6-e12d-400e-b8ac-ee0b1b72a0b5",
+      "name": "Download Generated Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [3500, 100],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $binary.data ? true : false }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "image-downloaded",
+      "name": "Image Downloaded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3700, 100]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"success\": true,\n  \"requestId\": \"{{ $('Store Generation Data').item.json.requestData?.requestId || $('Prepare Request Data').item.json.requestId || 'unknown' }}\",\n  \"prompt_id\": \"{{ $('Store Generation Data').item.json.prompt_id }}\",\n  \"filename\": \"{{ $('Extract Output Info').item.json.outputs[0].filename }}\",\n  \"original_prompt\": \"{{ $('Store Generation Data').item.json.requestData.textPrompt }}\",\n  \"enhanced_prompt\": \"{{ $('Store Generation Data').item.json.enhanced ? ($('Store Generation Data').item.json.finalPrompt ? $('Store Generation Data').item.json.finalPrompt.replace(/\\n/g, ' ').replace(/\"/g, '\\\\\"').trim() : '') : null }}\",\n  \"enhanced\": {{ $('Store Generation Data').item.json.enhanced }},\n  \"generation_time\": \"{{ new Date().toISOString() }}\",\n  \"execution_time_ms\": {{ isNaN(Math.round((new Date() - new Date($('Store Generation Data').item.json.submission_time)))) ? null : Math.round((new Date() - new Date($('Store Generation Data').item.json.submission_time))) }},\n  \"parameters\": {\n    \"width\": {{ $('Store Generation Data').item.json.requestData.width }},\n    \"height\": {{ $('Store Generation Data').item.json.requestData.height }},\n    \"steps\": {{ $('Store Generation Data').item.json.requestData.steps }},\n    \"cfg\": {{ $('Store Generation Data').item.json.requestData.cfg }},\n    \"sampler\": \"{{ $('Store Generation Data').item.json.requestData.sampler }}\",\n    \"scheduler\": \"{{ $('Store Generation Data').item.json.requestData.scheduler }}\",\n    \"model\": \"{{ $('Store Generation Data').item.json.requestData.model_checkpoint }}\",\n    \"seed\": {{ $('Store Generation Data').item.json.requestData.seed }}\n  },\n  \"metadata\": {\n    \"retry_count\": {{ $('Store Generation Data').item.json.retry_count }},\n    \"comfyui_execution_time\": {{ $('Extract Output Info').item.json.execution_time || 0 }}\n  }\n}",
+        "options": {}
+      },
+      "id": "2f198645-be94-43b0-8bae-8943000fc352",
+      "name": "Prepare Success Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [3900, 100]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "X-Request-ID",
+                "value": "={{ $json.requestId }}"
+              },
+              {
+                "name": "X-Generation-Time",
+                "value": "={{ $json.execution_time_ms }}ms"
+              }
+            ]
+          }
+        }
+      },
+      "id": "53e1d5df-39c0-412e-a0f7-cf85646a2917",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [4100, 100]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"error\": true,\n  \"errorType\": \"ImageDownloadError\",\n  \"errorMessage\": \"Failed to download generated image from ComfyUI\",\n  \"errorCode\": \"IMAGE_DOWNLOAD_FAILED\",\n  \"requestId\": \"{{ $('Store Generation Data').item.json.requestData.requestId }}\",\n  \"timestamp\": \"{{ $now.toISOString() }}\",\n  \"stage\": \"image_download\",\n  \"prompt_id\": \"{{ $('Store Generation Data').item.json.prompt_id }}\",\n  \"outputs\": {{ JSON.stringify($('Extract Output Info').item.json.outputs) }}\n}",
+        "options": {}
+      },
+      "id": "download-error",
+      "name": "Download Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [3700, 300]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"error\": true,\n  \"errorType\": \"NoOutputsError\",\n  \"errorMessage\": \"Generation completed but no outputs were produced\",\n  \"errorCode\": \"NO_OUTPUTS\",\n  \"requestId\": \"{{ $('Store Generation Data').item.json.requestData.requestId }}\",\n  \"timestamp\": \"{{ $now.toISOString() }}\",\n  \"stage\": \"output_extraction\",\n  \"prompt_id\": \"{{ $('Store Generation Data').item.json.prompt_id }}\",\n  \"generation_data\": {{ JSON.stringify($json.generation_data) }}\n}",
+        "options": {}
+      },
+      "id": "no-outputs-error",
+      "name": "No Outputs Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [3300, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://comfyui:8188/queue",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"clear\": false,\n  \"delete\": [\"{{ $json.prompt_id }}\"]\n}",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "cleanup-queue",
+      "name": "Cleanup Queue",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [4100, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"timestamp\": \"{{ $now.toISOString() }}\",\n  \"event_type\": \"image_generation\",\n  \"status\": \"{{ $json.success ? 'success' : 'error' }}\",\n  \"request_id\": \"{{ $json.requestId || $json.request_id }}\",\n  \"execution_time_ms\": {{ $json.execution_time_ms || $json.elapsed_time || 0 }},\n  \"enhanced\": {{ $json.enhanced || false }},\n  \"error_type\": \"{{ $json.errorType || null }}\",\n  \"error_message\": \"{{ $json.errorMessage || null }}\",\n  \"parameters\": {{ JSON.stringify($json.parameters || {}) }}\n}",
+        "options": {}
+      },
+      "id": "prepare-log",
+      "name": "Prepare Log Entry",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [4300, 200]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.LOG_SPREADSHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": "generations",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "event_type": "={{ $json.event_type }}",
+            "status": "={{ $json.status }}",
+            "request_id": "={{ $json.request_id }}",
+            "execution_time_ms": "={{ $json.execution_time_ms }}",
+            "enhanced": "={{ $json.enhanced }}",
+            "error_type": "={{ $json.error_type }}",
+            "error_message": "={{ $json.error_message }}",
+            "parameters": "={{ JSON.stringify($json.parameters) }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "log-to-sheets",
+      "name": "Log to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [4500, 200],
+      "disabled": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://comfyui:8188/queue",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "check-queue-status",
+      "name": "Check Queue Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1100, -100],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.queue_running.length + $json.queue_pending.length }}",
+              "rightValue": 5,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "queue-full",
+      "name": "Queue Full?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1300, -100],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"error\": true,\n  \"errorType\": \"QueueFull\",\n  \"errorMessage\": \"ComfyUI queue is full. Please try again later.\",\n  \"errorCode\": \"QUEUE_FULL\",\n  \"requestId\": \"{{ $('Prepare Request Data').item.json.requestId }}\",\n  \"timestamp\": \"{{ $now.toISOString() }}\",\n  \"stage\": \"queue_check\",\n  \"queue_status\": {\n    \"running\": {{ $json.queue_running.length }},\n    \"pending\": {{ $json.queue_pending.length }}\n  }\n}",
+        "options": {}
+      },
+      "id": "queue-full-error",
+      "name": "Queue Full Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [1500, -100],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## Workflow de Génération d'Images IA Optimisé\n\n### Fonctionnalités:\n1. **Amélioration de prompt** avec Ollama (optionnelle)\n2. **Gestion d'erreurs robuste** à chaque étape\n3. **Retry progressif** avec backoff exponentiel\n4. **Health checks** pour ComfyUI\n5. **Logging** vers Google Sheets (optionnel)\n6. **Nettoyage automatique** de la queue\n7. **Paramètres personnalisables** (taille, steps, CFG, etc.)\n8. **Support multi-modèles** SDXL\n\n### Endpoints:\n- POST `/generate-image`\n\n### Paramètres:\n- `textPrompt`: Description de l'image\n- `enhancePrompt`: Améliorer le prompt (défaut: true)\n- `width`/`height`: Dimensions (défaut: 1024x1024)\n- `steps`: Nombre d'étapes (défaut: 30)\n- `cfg`: Guidance scale (défaut: 7.5)\n- `seed`: Seed fixe (optionnel)\n- `model_checkpoint`: Modèle à utiliser\n- `negative_prompt`: Prompt négatif personnalisé",
+        "height": 436.8085106382979,
+        "width": 679.8936170212766
+      },
+      "id": "workflow-doc",
+      "name": "Documentation",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [0, -400]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Request Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Request Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Request Data": {
+      "main": [
+        [
+          {
+            "node": "Should Enhance Prompt?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Enhance Prompt?": {
+      "main": [
+        [
+          {
+            "node": "Ollama - Enhance Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "merge-prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama - Enhance Prompt": {
+      "main": [
+        [
+          {
+            "node": "merge-prompts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enhancement Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enhancement Error Handler": {
+      "main": [
+        [
+          {
+            "node": "merge-prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "merge-prompts": {
+      "main": [
+        [
+          {
+            "node": "Check ComfyUI Health",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check ComfyUI Health": {
+      "main": [
+        [
+          {
+            "node": "ComfyUI Available?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ComfyUI Available?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ComfyUI Available?": {
+      "main": [
+        [
+          {
+            "node": "Build ComfyUI Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ComfyUI Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ComfyUI Error": {
+      "main": [
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build ComfyUI Workflow": {
+      "main": [
+        [
+          {
+            "node": "POST to ComfyUI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST to ComfyUI": {
+      "main": [
+        [
+          {
+            "node": "Prompt Submitted?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prompt Submitted?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prompt Submitted?": {
+      "main": [
+        [
+          {
+            "node": "Store Generation Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Submission Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submission Error": {
+      "main": [
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Generation Data": {
+      "main": [
+        [
+          {
+            "node": "Initial Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initial Wait": {
+      "main": [
+        [
+          {
+            "node": "Check Generation Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Generation Status": {
+      "main": [
+        [
+          {
+            "node": "Status Retrieved?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Status Retrieved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status Retrieved?": {
+      "main": [
+        [
+          {
+            "node": "Generation Complete?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Can Retry?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generation Complete?": {
+      "main": [
+        [
+          {
+            "node": "Extract Output Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Can Retry?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Can Retry?": {
+      "main": [
+        [
+          {
+            "node": "Increment Retry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Timeout Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Increment Retry": {
+      "main": [
+        [
+          {
+            "node": "Progressive Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Progressive Wait": {
+      "main": [
+        [
+          {
+            "node": "Check Generation Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Timeout Error": {
+      "main": [
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Output Info": {
+      "main": [
+        [
+          {
+            "node": "Has Outputs?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Outputs?": {
+      "main": [
+        [
+          {
+            "node": "Download Generated Image",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Outputs Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Generated Image": {
+      "main": [
+        [
+          {
+            "node": "Image Downloaded?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Image Downloaded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Downloaded?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Success Response": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Cleanup Queue",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare Log Entry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Error": {
+      "main": [
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Outputs Error": {
+      "main": [
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare Log Entry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Log Entry": {
+      "main": [
+        [
+          {
+            "node": "Log to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Queue Status": {
+      "main": [
+        [
+          {
+            "node": "Queue Full?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue Full?": {
+      "main": [
+        [
+          {
+            "node": "Check ComfyUI Health",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Queue Full Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue Full Error": {
+      "main": [
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "errorWorkflow": "error-notification-workflow-id"
+  },
+  "versionId": "optimized-v2",
+  "meta": {
+    "instanceId": "51ff63531aa678abca238f6db3b172124b641504e32b644282ac4a2f8b2acb69"
+  },
+  "id": "rY4toWhEZMbCVSZu",
+  "tags": ["ai", "image-generation", "comfyui", "stable-diffusion"]
+}

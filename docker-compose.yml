@@ -1,0 +1,195 @@
+services:
+  comfyui:
+    build: {context: ./builders/comfyui}
+    container_name: comfyui
+    profiles: ["core"]
+    ports: ["${COMFYUI_PORT}:8188"]
+    volumes:
+      - comfyui_data:/app/data # Use named volume for main ComfyUI data
+      - ./data/comfyui/models:/app/models
+      - ./data/comfyui/output:/app/output
+      - ./data/comfyui/input:/app/input
+      - ./data/comfyui/workflows:/app/workflows
+      - ./data/comfyui/custom_nodes:/app/custom_nodes
+      - ./shared-files:/shared
+    command: python main.py --listen 0.0.0.0 --port 8188 ${COMFYUI_ARGS}
+    environment:
+      - CUBLAS_WORKSPACE_CONFIG=":1024:4"
+      - PYTORCH_ENABLE_MPS_FALLBACK=1
+      - OMP_NUM_THREADS=4
+      - MKL_NUM_THREADS=4
+      - COMFYUI_DISABLE_SAFE_UNPICKLE=1
+      - COMFYUI_QUEUE_SIZE=1
+      - COMFYUI_ARGS=${COMFYUI_ARGS:-}
+    networks: ["ia-network"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "python.*main.py"]
+      interval: 30s
+      timeout: 30s
+      retries: 10
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    profiles: ["core", "automation"]
+    ports: ["${OLLAMA_PORT}:11434"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes: ["./data/ollama:/root/.ollama"]
+    environment:
+      - OLLAMA_KEEP_ALIVE=15m
+    networks: ["ia-network"]
+    healthcheck:
+      test: ["CMD", "pgrep", "ollama"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s # Give Ollama time to start before checking
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    profiles: ["core"]
+    ports: ["${OPEN_WEBUI_PORT}:8080"]
+    volumes: ["./data/open-webui:/app/backend/data"]
+    networks: ["ia-network"]
+    depends_on: {ollama: {condition: service_healthy}}
+    environment:
+      OLLAMA_BASE_URL: 'http://ollama:11434'
+      WEBUI_CORS_ORIGINS: "http://localhost:${OPEN_WEBUI_PORT}"
+      POSTHOG_DISABLED: "true"
+      WEBUI_USER_AGENT: "GeminiCLI"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/_app/version.json"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    restart: unless-stopped
+
+  n8n:
+    build: {context: ./builders/n8n}
+    container_name: n8n
+    profiles: ["automation"]
+    ports: ["${N8N_PORT}:5678"]
+    env_file: [./.env]
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      N8N_RUNNERS_ENABLED: "true"
+      DB_POSTGRESDB_USER: ${POSTGRES_USER}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_POSTGRESDB_DATABASE: ${POSTGRES_DB}
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: ${N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS:-false}
+      N8N_EXECUTIONS_MODE: queue
+      N8N_EXECUTIONS_TIMEOUT: 7200
+      JAMZI_TEMP_PATH: /shared/temp
+      JAMZI_MUSIC_INPUT_PATH: /shared/music
+      JAMZI_AUDIO_INPUT_PATH: /shared/audio
+      JAMZI_OUTPUT_PATH: /shared/output
+      OLLAMA_API_URL: http://ollama:11434/api/chat
+      COMFYUI_API_URL: http://comfyui:8188
+      PIXABAY_API_KEY: ${PIXABAY_API_KEY}
+      N8N_LOG_LEVEL: info
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./data/n8n/workflows:/home/node/.n8n/workflows
+      - ./shared-files:/shared 
+    networks: ["ia-network"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_started}
+      comfyui: {condition: service_started}
+      ollama: {condition: service_started}
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "n8n"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+  postgres:
+    image: postgres:16
+    container_name: n8n-postgres
+    profiles: ["automation"]
+    env_file: [./.env]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
+    networks: ["ia-network"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s # Give PostgreSQL time to start
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+  redis:
+    image: redis:7
+    container_name: n8n-redis
+    profiles: ["automation"]
+    volumes: ["redis_data:/data"]
+    networks: ["ia-network"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    restart: unless-stopped
+
+networks:
+  ia-network: {driver: bridge}
+
+volumes:
+  postgres_data: {driver: local}
+  ollama_data: {driver: local}
+  comfyui_data: {driver: local}
+  n8n_data: {driver: local}
+  redis_data: {driver: local}

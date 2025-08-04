@@ -1,0 +1,42 @@
+  comfyui:
+    build: {context: ./builders/comfyui}
+    container_name: comfyui
+    profiles: ["core"]
+    ports: ["${COMFYUI_PORT}:8188"]
+    volumes:
+      - comfyui_data:/app/data # Use named volume for main ComfyUI data
+      - ./data/comfyui/models:/app/models
+      - ./data/comfyui/output:/app/output
+      - ./data/comfyui/input:/app/input
+      - ./data/comfyui/workflows:/app/workflows
+      - ./data/comfyui/custom_nodes:/app/custom_nodes
+      - ./shared-files:/shared
+    command: python main.py --listen 0.0.0.0 --port 8188 ${COMFYUI_ARGS}
+    environment:
+      - CUBLAS_WORKSPACE_CONFIG=":1024:4"
+      - PYTORCH_ENABLE_MPS_FALLBACK=1
+      - OMP_NUM_THREADS=4
+      - MKL_NUM_THREADS=4
+      - COMFYUI_DISABLE_SAFE_UNPICKLE=1
+      - COMFYUI_QUEUE_SIZE=1
+      - COMFYUI_ARGS=${COMFYUI_ARGS:-}
+    networks: ["ia-network"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "python.*main.py"]
+      interval: 30s
+      timeout: 30s
+      retries: 10
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+    restart: unless-stopped
+

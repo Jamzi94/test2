@@ -1,0 +1,29 @@
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    profiles: ["core", "automation"]
+    ports: ["${OLLAMA_PORT}:11434"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes: ["./data/ollama:/root/.ollama"]
+    environment:
+      - OLLAMA_KEEP_ALIVE=15m
+    networks: ["ia-network"]
+    healthcheck:
+      test: ["CMD", "pgrep", "ollama"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s # Give Ollama time to start before checking
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+

@@ -1,0 +1,18 @@
+  redis:
+    image: redis:7
+    container_name: n8n-redis
+    profiles: ["automation"]
+    volumes: ["redis_data:/data"]
+    networks: ["ia-network"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    restart: unless-stopped

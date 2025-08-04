@@ -1,0 +1,10 @@
+
+networks:
+  ia-network: {driver: bridge}
+
+volumes:
+  postgres_data: {driver: local}
+  ollama_data: {driver: local}
+  comfyui_data: {driver: local}
+  n8n_data: {driver: local}
+  redis_data: {driver: local}

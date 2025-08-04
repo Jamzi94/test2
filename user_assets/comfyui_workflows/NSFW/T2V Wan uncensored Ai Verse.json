@@ -1,0 +1,639 @@
+{
+  "id": "2a12bd73-f911-4fdc-9b3f-57da11e0ea6f",
+  "revision": 0,
+  "last_node_id": 142,
+  "last_link_id": 229,
+  "nodes": [
+    {
+      "id": 67,
+      "type": "EmptyHunyuanLatentVideo",
+      "pos": [
+        633.4111938476562,
+        2541.63916015625
+      ],
+      "size": [
+        315,
+        130
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            132
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.39",
+        "Node name for S&R": "EmptyHunyuanLatentVideo",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        832,
+        480,
+        53,
+        1
+      ]
+    },
+    {
+      "id": 71,
+      "type": "CLIPLoader",
+      "pos": [
+        -7.1226935386657715,
+        2100.378662109375
+      ],
+      "size": [
+        390,
+        106
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "slot_index": 0,
+          "links": [
+            122,
+            128
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.39",
+        "Node name for S&R": "CLIPLoader",
+        "models": [
+          {
+            "name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors?download=true",
+            "directory": "text_encoders"
+          }
+        ],
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+        "wan",
+        "default"
+      ]
+    },
+    {
+      "id": 68,
+      "type": "ModelSamplingSD3",
+      "pos": [
+        1094.3245849609375,
+        1911.6318359375
+      ],
+      "size": [
+        210,
+        58
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 226
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            129
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.39",
+        "Node name for S&R": "ModelSamplingSD3",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        7.000000000000002
+      ]
+    },
+    {
+      "id": 65,
+      "type": "VAELoader",
+      "pos": [
+        1032.7496337890625,
+        2556.31689453125
+      ],
+      "size": [
+        306.36004638671875,
+        58
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "slot_index": 0,
+          "links": [
+            125
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.39",
+        "Node name for S&R": "VAELoader",
+        "models": [
+          {
+            "name": "wan_2.1_vae.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors?download=true",
+            "directory": "vae"
+          }
+        ],
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "wan_2.1_vae.safetensors"
+      ]
+    },
+    {
+      "id": 72,
+      "type": "UNETLoader",
+      "pos": [
+        3.0415267944335938,
+        1873.555908203125
+      ],
+      "size": [
+        354.78790283203125,
+        82
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            127
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.39",
+        "Node name for S&R": "UNETLoader",
+        "models": [
+          {
+            "name": "wan2.1_t2v_1.3B_fp16.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_1.3B_fp16.safetensors?download=true",
+            "directory": "diffusion_models"
+          }
+        ],
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "wan_1.3B_e20.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 63,
+      "type": "CLIPTextEncode",
+      "pos": [
+        488.2633361816406,
+        2313.288818359375
+      ],
+      "size": [
+        425.27801513671875,
+        180.6060791015625
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 122
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            131
+          ]
+        }
+      ],
+      "title": "CLIP Text Encode (Negative Prompt)",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.39",
+        "Node name for S&R": "CLIPTextEncode",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "Over-saturated colors, overexposed, static, blurry details, subtitles, stylized, artwork, painting, still image, dull overall tone, worst quality, low quality, JPEG compression artifacts, ugly, deformed, extra fingers, poorly drawn hands, poorly drawn face, disfigured, anatomically incorrect limbs, finger fusion, motionless frame, cluttered background, three legs,good skin,plastic skin"
+      ],
+      "color": "#322",
+      "bgcolor": "#533"
+    },
+    {
+      "id": 66,
+      "type": "VAEDecode",
+      "pos": [
+        1417.4317626953125,
+        2179.692138671875
+      ],
+      "size": [
+        210,
+        46
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 124
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 125
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            135
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.39",
+        "Node name for S&R": "VAEDecode",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 73,
+      "type": "KSampler",
+      "pos": [
+        955.7381591796875,
+        2123.017822265625
+      ],
+      "size": [
+        315,
+        262
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 129
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 130
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 131
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 132
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            124
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.39",
+        "Node name for S&R": "KSampler",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        1065533057458425,
+        "randomize",
+        20,
+        5,
+        "uni_pc",
+        "normal",
+        1
+      ]
+    },
+    {
+      "id": 70,
+      "type": "CLIPTextEncode",
+      "pos": [
+        495.04052734375,
+        2092.14599609375
+      ],
+      "size": [
+        422.84503173828125,
+        164.31304931640625
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 128
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            130
+          ]
+        }
+      ],
+      "title": "CLIP Text Encode (Positive Prompt)",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.39",
+        "Node name for S&R": "CLIPTextEncode",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "25 years old girl outside in her lawn ,running naked and her boobs are jiggling while she is running"
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 69,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        686.81396484375,
+        1892.5076904296875
+      ],
+      "size": [
+        270,
+        82
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 127
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            226
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.39",
+        "Node name for S&R": "LoraLoaderModelOnly",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "Wan 2.1\\RevealingBoobs.safetensors",
+        1
+      ]
+    },
+    {
+      "id": 76,
+      "type": "VHS_VideoCombine",
+      "pos": [
+        1699.4447021484375,
+        2020.466552734375
+      ],
+      "size": [
+        509.8512878417969,
+        630.6065063476562
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 135
+        },
+        {
+          "name": "audio",
+          "shape": 7,
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "name": "meta_batch",
+          "shape": 7,
+          "type": "VHS_BatchManager",
+          "link": null
+        },
+        {
+          "name": "vae",
+          "shape": 7,
+          "type": "VAE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Filenames",
+          "type": "VHS_FILENAMES",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-videohelpersuite",
+        "ver": "a7ce59e381934733bfae03b1be029756d6ce936d",
+        "Node name for S&R": "VHS_VideoCombine",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": {
+        "frame_rate": 24,
+        "loop_count": 0,
+        "filename_prefix": "AnimateDiff",
+        "format": "video/h264-mp4",
+        "pix_fmt": "yuv420p",
+        "crf": 19,
+        "save_metadata": true,
+        "trim_to_audio": false,
+        "pingpong": false,
+        "save_output": true,
+        "videopreview": {
+          "hidden": false,
+          "paused": false,
+          "params": {
+            "filename": "AnimateDiff_00021.mp4",
+            "subfolder": "",
+            "type": "output",
+            "format": "video/h264-mp4",
+            "frame_rate": 16,
+            "workflow": "AnimateDiff_00021.png",
+            "fullpath": "C:\\ComfyUI_windows_portable\\ComfyUI\\output\\AnimateDiff_00021.mp4"
+          }
+        }
+      }
+    }
+  ],
+  "links": [
+    [
+      122,
+      71,
+      0,
+      63,
+      0,
+      "CLIP"
+    ],
+    [
+      124,
+      73,
+      0,
+      66,
+      0,
+      "LATENT"
+    ],
+    [
+      125,
+      65,
+      0,
+      66,
+      1,
+      "VAE"
+    ],
+    [
+      127,
+      72,
+      0,
+      69,
+      0,
+      "MODEL"
+    ],
+    [
+      128,
+      71,
+      0,
+      70,
+      0,
+      "CLIP"
+    ],
+    [
+      129,
+      68,
+      0,
+      73,
+      0,
+      "MODEL"
+    ],
+    [
+      130,
+      70,
+      0,
+      73,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      131,
+      63,
+      0,
+      73,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      132,
+      67,
+      0,
+      73,
+      3,
+      "LATENT"
+    ],
+    [
+      135,
+      66,
+      0,
+      76,
+      0,
+      "IMAGE"
+    ],
+    [
+      226,
+      69,
+      0,
+      68,
+      0,
+      "MODEL"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1.4420993610649957,
+      "offset": [
+        -602.4052055848776,
+        -2110.081947165722
+      ]
+    },
+    "frontendVersion": "1.21.7",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true,
+    "ue_links": [],
+    "links_added_by_ue": []
+  },
+  "version": 0.4
+}

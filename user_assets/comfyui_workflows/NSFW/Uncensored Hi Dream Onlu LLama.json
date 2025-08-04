@@ -1,0 +1,571 @@
+{
+  "id": "01d66ae9-78be-4a8d-b737-24eee5e1d447",
+  "revision": 0,
+  "last_node_id": 75,
+  "last_link_id": 175,
+  "nodes": [
+    {
+      "id": 8,
+      "type": "VAEDecode",
+      "pos": [
+        1340,
+        -20
+      ],
+      "size": [
+        210,
+        46
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 160
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 107
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            51
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.29",
+        "Node name for S&R": "VAEDecode",
+        "ttNbgOverride": {
+          "color": "#2a363b",
+          "bgcolor": "#3f5159",
+          "groupcolor": "#3f789e"
+        },
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
+    },
+    {
+      "id": 9,
+      "type": "SaveImage",
+      "pos": [
+        1570,
+        -20
+      ],
+      "size": [
+        966.615966796875,
+        1025.3206787109375
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 51
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.29",
+        "Node name for S&R": "SaveImage",
+        "ttNbgOverride": {
+          "color": "#2a363b",
+          "bgcolor": "#3f5159",
+          "groupcolor": "#3f789e"
+        },
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "ComfyUI"
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
+    },
+    {
+      "id": 70,
+      "type": "ModelSamplingSD3",
+      "pos": [
+        750,
+        -90
+      ],
+      "size": [
+        210,
+        58
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 162
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            163
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.29",
+        "Node name for S&R": "ModelSamplingSD3",
+        "ttNbgOverride": {
+          "color": "#2a363b",
+          "bgcolor": "#3f5159",
+          "groupcolor": "#3f789e"
+        },
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        3.0000000000000004
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
+    },
+    {
+      "id": 53,
+      "type": "EmptySD3LatentImage",
+      "pos": [
+        640,
+        500
+      ],
+      "size": [
+        315,
+        106
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            100
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.29",
+        "Node name for S&R": "EmptySD3LatentImage",
+        "ttNbgOverride": {
+          "color": "#2a363b",
+          "bgcolor": "#3f5159",
+          "groupcolor": "#3f789e"
+        },
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
+    },
+    {
+      "id": 40,
+      "type": "CLIPTextEncode",
+      "pos": [
+        530,
+        260
+      ],
+      "size": [
+        432,
+        192
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 175
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            114
+          ]
+        }
+      ],
+      "title": "Negative Prompt",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.29",
+        "Node name for S&R": "CLIPTextEncode",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "blurry"
+      ],
+      "color": "#322",
+      "bgcolor": "#533"
+    },
+    {
+      "id": 74,
+      "type": "CLIPLoader",
+      "pos": [
+        104.7201919555664,
+        247.40199279785156
+      ],
+      "size": [
+        315,
+        106
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            174,
+            175
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.29",
+        "Node name for S&R": "CLIPLoader",
+        "ttNbgOverride": {
+          "color": "#2a363b",
+          "bgcolor": "#3f5159",
+          "groupcolor": "#3f789e"
+        },
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "llama_3.1_8b_instruct_fp8_scaled.safetensors",
+        "hidream",
+        "default"
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
+    },
+    {
+      "id": 69,
+      "type": "UNETLoader",
+      "pos": [
+        80,
+        -90
+      ],
+      "size": [
+        400,
+        82
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            162
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.29",
+        "Node name for S&R": "UNETLoader",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "hidream_i1_dev_uncensored_fp8_v0.2.safetensors",
+        "fp8_e4m3fn"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 16,
+      "type": "CLIPTextEncode",
+      "pos": [
+        530,
+        20
+      ],
+      "size": [
+        432,
+        192
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 174
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            21
+          ]
+        }
+      ],
+      "title": "Positive Prompt",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.29",
+        "Node name for S&R": "CLIPTextEncode",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "a women at a nude beach sitting naked with her friends and in the background there are many people that are also semi nude,realistic,hd "
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 55,
+      "type": "VAELoader",
+      "pos": [
+        1010,
+        290
+      ],
+      "size": [
+        310,
+        60
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            107
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.29",
+        "Node name for S&R": "VAELoader",
+        "ttNbgOverride": {
+          "color": "#2a363b",
+          "bgcolor": "#3f5159",
+          "groupcolor": "#3f789e"
+        },
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "ae.safetensors"
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
+    },
+    {
+      "id": 3,
+      "type": "KSampler",
+      "pos": [
+        1010,
+        -20
+      ],
+      "size": [
+        310,
+        262
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 163
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 21
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 114
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 100
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            160
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.29",
+        "Node name for S&R": "KSampler",
+        "ttNbgOverride": {
+          "color": "#2a363b",
+          "bgcolor": "#3f5159",
+          "groupcolor": "#3f789e"
+        },
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        168350216261784,
+        "randomize",
+        30,
+        1,
+        "euler",
+        "sgm_uniform",
+        1
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
+    }
+  ],
+  "links": [
+    [
+      21,
+      16,
+      0,
+      3,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      51,
+      8,
+      0,
+      9,
+      0,
+      "IMAGE"
+    ],
+    [
+      100,
+      53,
+      0,
+      3,
+      3,
+      "LATENT"
+    ],
+    [
+      107,
+      55,
+      0,
+      8,
+      1,
+      "VAE"
+    ],
+    [
+      114,
+      40,
+      0,
+      3,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      160,
+      3,
+      0,
+      8,
+      0,
+      "LATENT"
+    ],
+    [
+      162,
+      69,
+      0,
+      70,
+      0,
+      "MODEL"
+    ],
+    [
+      163,
+      70,
+      0,
+      3,
+      0,
+      "MODEL"
+    ],
+    [
+      174,
+      74,
+      0,
+      16,
+      0,
+      "CLIP"
+    ],
+    [
+      175,
+      74,
+      0,
+      40,
+      0,
+      "CLIP"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.7627768444385532,
+      "offset": [
+        221.65205440390235,
+        143.69660976421673
+      ]
+    },
+    "ue_links": [],
+    "VHS_latentpreview": true,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true,
+    "links_added_by_ue": [],
+    "frontendVersion": "1.23.4"
+  },
+  "version": 0.4
+}

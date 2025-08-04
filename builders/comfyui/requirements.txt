@@ -1,0 +1,53 @@
+# Core ComfyUI dependencies (based on official recommendations 2024)
+# PyTorch is installed separately in Dockerfile for CUDA compatibility
+torchsde
+numpy>=1.25.0
+einops
+transformers>=4.28.1
+tokenizers>=0.13.3
+sentencepiece
+safetensors>=0.4.2
+aiohttp>=3.11.8
+yarl>=1.18.0
+pyyaml
+Pillow
+scipy
+tqdm
+psutil
+
+# Additional ComfyUI frontend and tools
+comfyui-frontend-package>=1.14.5
+
+# Accelerated inference
+xformers
+accelerate>=0.24.0
+
+# HuggingFace integration
+huggingface_hub>=0.19.0
+
+# Custom nodes dependencies
+dlib-bin
+opencv-python-headless
+librosa
+scikit-image
+basicsr
+facexlib
+gfpgan
+imageio-ffmpeg
+dill
+onnxruntime
+pykalman
+GitPython
+omegaconf
+ultralytics
+insightface
+einx
+toml
+rich
+sounddevice
+
+# Additional stability dependencies
+requests>=2.31.0
+pillow>=10.0.0
+pyyaml>=6.0.0
+tqdm>=4.65.0

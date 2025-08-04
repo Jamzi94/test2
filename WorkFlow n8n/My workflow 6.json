@@ -1,0 +1,452 @@
+{
+  "name": "My workflow 6",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-image",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "cd6d2c79-5c1c-4f03-b500-0e469a1e7dae",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        112
+      ],
+      "webhookId": "generate-image-webhook"
+    },
+    {
+      "parameters": {},
+      "id": "711ae692-25bb-44db-8c08-874d65ba8eba",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        144,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"textPrompt\": \"{{ $json.body?.textPrompt || $json.textPrompt || 'Une forêt enchantée avec des créatures magiques, style fantasy art, haute qualité' }}\",\n  \"model\": \"{{ $json.body?.model || $json.model || 'ajindal/llama3.1-storm:8b' }}\",\n  \"temperature\": {{ $json.body?.temperature || $json.temperature || 0.7 }},\n  \"max_tokens\": {{ $json.body?.max_tokens || $json.max_tokens || 150 }}\n}",
+        "options": {}
+      },
+      "id": "6b6d6fdd-76af-4563-a33f-57b0856296cc",
+      "name": "Prepare Prompt Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        384,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ollama:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"{{ $json.model }}\",\n  \"prompt\": \"En tant qu'expert en génération d'images IA, transformez cette description en un prompt détaillé pour Stable Diffusion. Ajoutez des détails artistiques, des styles, la qualité et l'éclairage. Description: {{ $json.textPrompt }}\\n\\nPrompt optimisé:\",\n  \"stream\": false,\n  \"temperature\": {{ $json.temperature }},\n  \"num_predict\": {{ $json.max_tokens }},\n  \"system\": \"Tu es un expert en création de prompts pour Stable Diffusion. Tu transformes des descriptions simples en prompts détaillés qui produisent des images de haute qualité. Tu ajoutes toujours des détails sur le style artistique, l'éclairage, la composition, la qualité (8k, highly detailed, etc.) et les mots-clés pertinents.\"\n}",
+        "options": {
+          "timeout": 100000
+        }
+      },
+      "id": "a64dd15d-1638-4472-89cc-8f011facc459",
+      "name": "Ollama - Enhance Prompt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        624,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"prompt\": {\n    \"3\": {\n      \"inputs\": {\n        \"seed\": {{ Math.floor(Math.random() * 1000000) }},\n        \"steps\": 30,\n        \"cfg\": 7.5,\n        \"sampler_name\": \"dpmpp_2m\",\n        \"scheduler\": \"karras\",\n        \"denoise\": 1,\n        \"model\": [\"4\", 0],\n        \"positive\": [\"6\", 0],\n        \"negative\": [\"7\", 0],\n        \"latent_image\": [\"5\", 0]\n      },\n      \"class_type\": \"KSampler\"\n    },\n    \"4\": {\n      \"inputs\": {\n        \"ckpt_name\": \"sd_xl_base_1.0.safetensors\"\n      },\n      \"class_type\": \"CheckpointLoaderSimple\"\n    },\n    \"5\": {\n      \"inputs\": {\n        \"width\": 1024,\n        \"height\": 1024,\n        \"batch_size\": 1\n      },\n      \"class_type\": \"EmptyLatentImage\"\n    },\n    \"6\": {\n      \"inputs\": {\n        \"text\": \"{{ $json.response.replace(/\\n/g, ' ').replace(/\"/g, '\\\\\"') }}\",\n        \"clip\": [\"4\", 1]\n      },\n      \"class_type\": \"CLIPTextEncode\"\n    },\n    \"7\": {\n      \"inputs\": {\n        \"text\": \"blurry, bad quality, worst quality, low quality, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username\",\n        \"clip\": [\"4\", 1]\n      },\n      \"class_type\": \"CLIPTextEncode\"\n    },\n    \"8\": {\n      \"inputs\": {\n        \"samples\": [\"3\", 0],\n        \"vae\": [\"4\", 2]\n      },\n      \"class_type\": \"VAEDecode\"\n    },\n    \"9\": {\n      \"inputs\": {\n        \"filename_prefix\": \"n8n_generated\",\n        \"images\": [\"8\", 0]\n      },\n      \"class_type\": \"SaveImage\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "id": "940bb4f1-99ae-4f5a-ae29-584644beb601",
+      "name": "Build ComfyUI Workflow",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        864,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://comfyui:8188/prompt",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "bbb8bcf3-ac93-45d7-8e0b-2606b29e67c6",
+      "name": "POST to ComfyUI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1104,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"prompt_id\": \"{{ $json.prompt_id }}\",\n  \"number\": \"{{ $json.number }}\",\n  \"node_errors\": {{ JSON.stringify($json.node_errors || {}) }}\n}",
+        "options": {}
+      },
+      "id": "64fe7245-0bd6-41fe-bf9c-8d1bb7490e8a",
+      "name": "Store Prompt ID",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        1344,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      },
+      "id": "d09755da-85a4-4181-8723-bac10ea0ae09",
+      "name": "Wait 5s Initial",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        16
+      ],
+      "webhookId": "3bae9dc5-3c63-49be-890f-1078267f9527"
+    },
+    {
+      "parameters": {
+        "url": "=http://comfyui:8188/history/{{ $json.prompt_id }}",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "b74f574b-58d6-468c-93f9-6c488c016d49",
+      "name": "Check Generation Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1824,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ Object.keys($json).length > 0 && $json[Object.keys($json)[0]]?.status?.status_str }}",
+              "rightValue": "success",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "efe6912c-b509-4e9e-8d0a-9035f14dd66b",
+      "name": "Is Generation Done?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2064,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "seconds"
+      },
+      "id": "e138aa3d-74c4-4d0c-aaf2-c7eb90eb2f89",
+      "name": "Wait 3s and Retry",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        2064,
+        208
+      ],
+      "webhookId": "c3a580dd-1a97-4b74-aef5-44c78db9bb8b"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"prompt_id\": \"{{ $('store-prompt-id').item.json.prompt_id }}\",\n  \"outputs\": {{ JSON.stringify($json[Object.keys($json)[0]].outputs['9'].images) }},\n  \"status\": \"success\"\n}",
+        "options": {}
+      },
+      "id": "3b5cd6ab-247f-4e12-b17a-4c9b561bfdb3",
+      "name": "Extract Output Info",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        2304,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=http://comfyui:8188/view?filename={{ $json.outputs[0].filename }}&subfolder={{ $json.outputs[0].subfolder }}&type={{ $json.outputs[0].type }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "4f91c5c6-e12d-400e-b8ac-ee0b1b72a0b5",
+      "name": "Download Generated Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        2544,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"success\": true,\n  \"prompt_id\": \"{{ $('store-prompt-id').item.json.prompt_id }}\",\n  \"filename\": \"{{ $('extract-output').item.json.outputs[0].filename }}\",\n  \"original_prompt\": \"{{ $('prepare-prompt').item.json.textPrompt }}\",\n  \"enhanced_prompt\": \"{{ $('ollama-enhance').item.json.response }}\",\n  \"generation_time\": \"{{ new Date().toISOString() }}\"\n}",
+        "options": {}
+      },
+      "id": "2f198645-be94-43b0-8bae-8943000fc352",
+      "name": "Prepare Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        2784,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "53e1d5df-39c0-412e-a0f7-cf85646a2917",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        3024,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "otherOptions": {}
+      },
+      "id": "e40c00f0-a2e7-4d1f-b8dd-4ae573db2ae0",
+      "name": "Notify Success",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [
+        3024,
+        208
+      ],
+      "webhookId": "7455b912-3c38-4e13-8cb3-e808a73a167a",
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Prompt Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare Prompt Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Prompt Data": {
+      "main": [
+        [
+          {
+            "node": "Ollama - Enhance Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama - Enhance Prompt": {
+      "main": [
+        [
+          {
+            "node": "Build ComfyUI Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build ComfyUI Workflow": {
+      "main": [
+        [
+          {
+            "node": "POST to ComfyUI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST to ComfyUI": {
+      "main": [
+        [
+          {
+            "node": "Store Prompt ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Prompt ID": {
+      "main": [
+        [
+          {
+            "node": "Wait 5s Initial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 5s Initial": {
+      "main": [
+        [
+          {
+            "node": "Check Generation Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Generation Status": {
+      "main": [
+        [
+          {
+            "node": "Is Generation Done?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Generation Done?": {
+      "main": [
+        [
+          {
+            "node": "Extract Output Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 3s and Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 3s and Retry": {
+      "main": [
+        [
+          {
+            "node": "Check Generation Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Output Info": {
+      "main": [
+        [
+          {
+            "node": "Download Generated Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Generated Image": {
+      "main": [
+        [
+          {
+            "node": "Prepare Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notify Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4632239e-7f22-46f3-b93b-59b4e52b4d54",
+  "meta": {
+    "instanceId": "51ff63531aa678abca238f6db3b172124b641504e32b644282ac4a2f8b2acb69"
+  },
+  "id": "rY4toWhEZMbCVSZu",
+  "tags": []
+}

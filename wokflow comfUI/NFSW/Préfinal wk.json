@@ -1,0 +1,791 @@
+{
+  "id": "21129958-d7de-43c5-bb31-45445fab6ef1",
+  "revision": 0,
+  "last_node_id": 18,
+  "last_link_id": 17,
+  "nodes": [
+    {
+      "id": 6,
+      "type": "EmptyLatentImage",
+      "pos": [
+        50,
+        350
+      ],
+      "size": [
+        315,
+        106
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            7
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.44",
+        "Node name for S&R": "EmptyLatentImage"
+      },
+      "widgets_values": [
+        768,
+        512,
+        24
+      ]
+    },
+    {
+      "id": 18,
+      "type": "UpscaleModelLoader",
+      "pos": [
+        1109.7177734375,
+        -2.6542305946350098
+      ],
+      "size": [
+        273.6666564941406,
+        58
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "UPSCALE_MODEL",
+          "type": "UPSCALE_MODEL",
+          "slot_index": 0,
+          "links": [
+            17
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.44",
+        "Node name for S&R": "UpscaleModelLoader"
+      },
+      "widgets_values": [
+        "4x-UltraSharp.pth"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "CLIPTextEncode",
+      "pos": [
+        402.36260986328125,
+        -1.9768388271331787
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            5
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.44",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "masterpiece, best quality, ultra realistic, 8k resolution, cinematic lighting, professional photography, (athletic woman running:1.3), natural movement, outdoor winter scene, fresh snow terrain, clear blue sky, golden hour lighting, detailed facial features, natural skin texture, realistic hair physics, dynamic pose, sports attire, breath visible in cold air, snowflakes in motion, depth of field, sharp focus on subject, natural shadows, photorealistic, highly detailed"
+      ]
+    },
+    {
+      "id": 7,
+      "type": "KSampler",
+      "pos": [
+        897.2515258789062,
+        329.9419860839844
+      ],
+      "size": [
+        315,
+        474
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 11
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 5
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 6
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.44",
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        42,
+        "fixed",
+        30,
+        7.5,
+        "dpmpp_2m",
+        "karras",
+        1
+      ]
+    },
+    {
+      "id": 8,
+      "type": "VAEDecode",
+      "pos": [
+        1190.5498046875,
+        148.0231475830078
+      ],
+      "size": [
+        210,
+        46
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 8
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 9
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            12,
+            14
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.44",
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 15,
+      "type": "VHS_VideoCombine",
+      "pos": [
+        1650,
+        350
+      ],
+      "size": [
+        315,
+        520.6666870117188
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 15
+        },
+        {
+          "name": "audio",
+          "shape": 7,
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "name": "meta_batch",
+          "shape": 7,
+          "type": "VHS_BatchManager",
+          "link": null
+        },
+        {
+          "name": "vae",
+          "shape": 7,
+          "type": "VAE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Filenames",
+          "type": "VHS_FILENAMES",
+          "slot_index": 0,
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-videohelpersuite",
+        "ver": "a7ce59e381934733bfae03b1be029756d6ce936d",
+        "Node name for S&R": "VHS_VideoCombine"
+      },
+      "widgets_values": {
+        "frame_rate": 24,
+        "loop_count": 0,
+        "filename_prefix": "realistic_winter_run",
+        "format": "video/h265-mp4",
+        "pix_fmt": "yuv420p10le",
+        "crf": 22,
+        "save_metadata": true,
+        "pingpong": false,
+        "save_output": true,
+        "videopreview": {
+          "hidden": false,
+          "paused": false,
+          "params": {
+            "filename": "realistic_winter_run_00003.mp4",
+            "subfolder": "",
+            "type": "output",
+            "format": "video/h265-mp4",
+            "frame_rate": 24,
+            "workflow": "realistic_winter_run_00003.png",
+            "fullpath": "/app/output/realistic_winter_run_00003.mp4"
+          }
+        }
+      }
+    },
+    {
+      "id": 16,
+      "type": "VHS_SaveImageSequence",
+      "pos": [
+        1200,
+        350
+      ],
+      "size": [
+        310,
+        270
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 14
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            15
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {},
+      "widgets_values": {
+        "filename_prefix": "winter_run_frame",
+        "filetype": "webp",
+        "quality": 100,
+        "save_metadata": true,
+        "force_integer_positions": false,
+        "positive_prompt_in_metadata": true,
+        "negative_prompt_in_metadata": true,
+        "file_dialog": true,
+        "save_job_data": true
+      }
+    },
+    {
+      "id": 12,
+      "type": "ADE_ApplyAnimateDiffModel",
+      "pos": [
+        392.9122314453125,
+        693.7078857421875
+      ],
+      "size": [
+        315,
+        246
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "motion_model",
+          "type": "MOTION_MODEL_ADE",
+          "link": 4
+        },
+        {
+          "name": "motion_lora",
+          "shape": 7,
+          "type": "MOTION_LORA",
+          "link": null
+        },
+        {
+          "name": "scale_multival",
+          "shape": 7,
+          "type": "MULTIVAL",
+          "link": null
+        },
+        {
+          "name": "effect_multival",
+          "shape": 7,
+          "type": "MULTIVAL",
+          "link": null
+        },
+        {
+          "name": "ad_keyframes",
+          "shape": 7,
+          "type": "AD_KEYFRAMES",
+          "link": null
+        },
+        {
+          "name": "prev_m_models",
+          "shape": 7,
+          "type": "M_MODELS",
+          "link": null
+        },
+        {
+          "name": "per_block",
+          "shape": 7,
+          "type": "PER_BLOCK",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "M_MODELS",
+          "type": "M_MODELS",
+          "slot_index": 0,
+          "links": [
+            10
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-animatediff-evolved",
+        "ver": "1.5.5",
+        "Node name for S&R": "ADE_ApplyAnimateDiffModel"
+      },
+      "widgets_values": [
+        0.8440000000000002,
+        1
+      ]
+    },
+    {
+      "id": 11,
+      "type": "ADE_LoadAnimateDiffModel",
+      "pos": [
+        50,
+        200
+      ],
+      "size": [
+        315,
+        58
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "ad_settings",
+          "shape": 7,
+          "type": "AD_SETTINGS",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MOTION_MODEL",
+          "type": "MOTION_MODEL_ADE",
+          "slot_index": 0,
+          "links": [
+            4
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-animatediff-evolved",
+        "ver": "1.5.5",
+        "Node name for S&R": "ADE_LoadAnimateDiffModel"
+      },
+      "widgets_values": [
+        "mm_sd_v15_v2.ckpt"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "ADE_UseEvolvedSampling",
+      "pos": [
+        407.087646484375,
+        510.63165283203125
+      ],
+      "size": [
+        315,
+        118
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        },
+        {
+          "name": "m_models",
+          "shape": 7,
+          "type": "M_MODELS",
+          "link": 10
+        },
+        {
+          "name": "context_options",
+          "shape": 7,
+          "type": "CONTEXT_OPTIONS",
+          "link": null
+        },
+        {
+          "name": "sample_settings",
+          "shape": 7,
+          "type": "SAMPLE_SETTINGS",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            11
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-animatediff-evolved",
+        "ver": "1.5.5",
+        "Node name for S&R": "ADE_UseEvolvedSampling"
+      },
+      "widgets_values": [
+        "autoselect"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "CLIPTextEncode",
+      "pos": [
+        405.19769287109375,
+        255.31105041503906
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "slot_index": 0,
+          "links": [
+            6
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.44",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "blurry, low quality, distorted, deformed anatomy, unrealistic proportions, cartoon, anime, painting, drawing, illustration, watermark, signature, text overlay, oversaturated colors, artificial lighting, plastic skin, fake, static pose, frozen motion, poor composition, low resolution, compression artifacts, noise, grain"
+      ]
+    },
+    {
+      "id": 1,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        50,
+        50
+      ],
+      "size": [
+        315,
+        98
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "slot_index": 0,
+          "links": [
+            1
+          ]
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "slot_index": 1,
+          "links": [
+            2,
+            3
+          ]
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "slot_index": 2,
+          "links": [
+            9
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.44",
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "sd15.ckpt"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "ImageUpscaleWithModel",
+      "pos": [
+        1521.4677734375,
+        40.226627349853516
+      ],
+      "size": [
+        315,
+        98
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "upscale_model",
+          "type": "UPSCALE_MODEL",
+          "link": 17
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 12
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.44",
+        "Node name for S&R": "ImageUpscaleWithModel"
+      },
+      "widgets_values": []
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      13,
+      0,
+      "MODEL"
+    ],
+    [
+      2,
+      1,
+      1,
+      2,
+      0,
+      "CLIP"
+    ],
+    [
+      3,
+      1,
+      1,
+      3,
+      0,
+      "CLIP"
+    ],
+    [
+      4,
+      11,
+      0,
+      12,
+      0,
+      "MOTION_MODEL_ADE"
+    ],
+    [
+      5,
+      2,
+      0,
+      7,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      6,
+      3,
+      0,
+      7,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      7,
+      6,
+      0,
+      7,
+      3,
+      "LATENT"
+    ],
+    [
+      8,
+      7,
+      0,
+      8,
+      0,
+      "LATENT"
+    ],
+    [
+      9,
+      1,
+      2,
+      8,
+      1,
+      "VAE"
+    ],
+    [
+      10,
+      12,
+      0,
+      13,
+      1,
+      "M_MODELS"
+    ],
+    [
+      11,
+      13,
+      0,
+      7,
+      0,
+      "MODEL"
+    ],
+    [
+      12,
+      8,
+      0,
+      17,
+      1,
+      "IMAGE"
+    ],
+    [
+      14,
+      8,
+      0,
+      16,
+      0,
+      "IMAGE"
+    ],
+    [
+      15,
+      16,
+      0,
+      15,
+      0,
+      "IMAGE"
+    ],
+    [
+      17,
+      18,
+      0,
+      17,
+      0,
+      "UPSCALE_MODEL"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.7695736434108528,
+      "offset": [
+        298.84198850758986,
+        115.0556343407054
+      ]
+    },
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true,
+    "frontendVersion": "1.23.4"
+  },
+  "version": 0.4
+}
